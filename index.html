@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kappa League College &amp; Money Planner</title>
+<style>
+  :root{
+    --maroon:#3B1012; --maroon-d:#280B0C; --gold:#F6E08A; --gold-d:#E6C65A;
+    --ink:#1c1917; --muted:#6b7280; --line:#e4d9a8; --panel:#ffffff;
+    --good:#15803d; --warn:#b45309; --bad:#b91c1c; --soft:#fdf6dd;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);background:var(--gold)}
+  .top{background:linear-gradient(135deg,var(--maroon),var(--maroon-d));color:var(--gold);padding:22px 18px 16px}
+  .top .wrap{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .kicker{letter-spacing:.18em;text-transform:uppercase;font-size:12px;opacity:.9;margin:0 0 4px}
+  h1{margin:0;font-size:25px}
+  .top p{margin:6px 0 0;font-size:13.5px;opacity:.92;max-width:640px}
+  .printbtn{background:var(--gold);color:var(--maroon-d);border:0;border-radius:9px;padding:10px 16px;
+    font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap}
+  .printbtn:hover{background:#fff}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 18px}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;max-width:1100px;margin:0 auto;padding:12px 18px 0;
+    position:sticky;top:0;z-index:10;background:var(--gold)}
+  .tab{background:var(--gold-d);color:var(--maroon-d);border:0;padding:9px 15px;border-radius:10px 10px 0 0;
+    font-size:13.5px;font-weight:700;cursor:pointer}
+  .tab.active{background:var(--panel);color:var(--maroon)}
+  .pane{display:none;padding:18px 0 50px}.pane.active{display:block}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;
+    box-shadow:0 6px 20px rgba(28,25,23,.06);margin-bottom:16px}
+  h2{font-size:16px;margin:0 0 4px;color:var(--maroon-d)}
+  .sub{font-size:12.5px;color:var(--muted);margin:0 0 14px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 18px}
+  @media(max-width:720px){.grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:460px){.grid{grid-template-columns:1fr}}
+  label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px;font-weight:600}
+  .field{position:relative}
+  .field .pre{position:absolute;left:11px;top:33px;color:var(--muted);font-size:14px}
+  .field .suf{position:absolute;right:11px;top:33px;color:var(--muted);font-size:14px}
+  input,select{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:9px;font-size:15px;background:#fff}
+  input.padpre{padding-left:22px}
+  input:focus,select:focus{outline:2px solid var(--maroon);border-color:var(--maroon)}
+  input[type=range]{padding:0}
+  .divider{height:1px;background:var(--line);margin:16px 0}
+  .summary{display:flex;flex-wrap:wrap;gap:12px}
+  .stat{flex:1;min-width:150px;background:var(--soft);border-radius:10px;padding:12px 14px}
+  .stat .k{font-size:12px;color:var(--muted)}
+  .stat .v{font-size:19px;font-weight:800;margin-top:2px}
+  .gapcard{border-radius:12px;padding:16px 18px;margin-top:14px;color:#fff}
+  .gapcard.pos{background:linear-gradient(135deg,#3B1012,#280B0C)}
+  .gapcard.neg{background:linear-gradient(135deg,#15803d,#0f5132)}
+  .gapcard .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.9}
+  .gapcard .big{font-size:29px;font-weight:800;margin:2px 0}
+  .gapcard .exp{font-size:13px;opacity:.96;line-height:1.5}
+  .flag{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:9px;padding:10px 12px;font-size:13px;margin-top:12px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:10px 9px;text-align:right;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  thead th{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.03em}
+  tbody tr:hover{background:var(--soft)}
+  .pay{font-weight:800;color:var(--maroon)}
+  .note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.55}
+  .pill{display:inline-block;background:var(--gold-d);color:var(--maroon-d);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;margin-left:6px}
+  /* tooltip */
+  .tip{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;
+    background:var(--maroon);color:#fff;font-size:11px;font-weight:800;cursor:help;position:relative;margin-left:5px;vertical-align:middle}
+  .tip::after{content:attr(data-tip);position:absolute;bottom:150%;left:50%;transform:translateX(-50%);
+    background:#1c1917;color:#fff;padding:9px 11px;border-radius:8px;font-size:12px;font-weight:400;
+    width:230px;line-height:1.45;opacity:0;pointer-events:none;transition:.15s;z-index:30;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+  .tip:hover::after{opacity:1}
+  @media(max-width:520px){.tip::after{width:170px;left:auto;right:0;transform:none}}
+  .guide{font-size:14px;line-height:1.65}
+  .guide h3{color:var(--maroon);font-size:15px;margin:18px 0 6px}
+  .guide ol{margin:6px 0 0;padding-left:20px}.guide li{margin-bottom:6px}
+  .linkgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;margin-top:8px}
+  @media(max-width:520px){.linkgrid{grid-template-columns:1fr}}
+  .linkgrid a{color:var(--maroon);font-weight:600;font-size:13.5px}
+  .steps{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+  .step{flex:1;min-width:160px;background:var(--soft);border-radius:10px;padding:12px 14px;font-size:13px}
+  .step b{color:var(--maroon-d)}
+  .disclaimer{background:#fffdf5;border:1px solid var(--line);border-left:4px solid var(--maroon);
+    border-radius:10px;padding:16px 18px;margin:4px 0 40px;font-size:12.5px;color:#57534e;line-height:1.6}
+  .disclaimer strong{color:var(--maroon-d)}
+  .disclaimer .updated{margin-top:10px;font-size:11.5px;color:var(--muted);font-style:italic}
+  .checkrow{display:flex;align-items:center;gap:8px;margin-top:10px}
+  .checkrow input{width:auto}.checkrow label{margin:0;color:var(--ink);font-weight:500}
+  @media print{
+    .tabs,.printbtn,.top p,.kicker{display:none!important}
+    .pane:not(.active){display:none!important}
+    .tip{display:none}
+    body{background:#fff}
+    .card{box-shadow:none;break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="top"><div class="wrap">
+  <div>
+    <p class="kicker">Kappa League • Achievement Planning</p>
+    <h1>College &amp; Money Planner</h1>
+    <p>Plan what school costs, line up free money and jobs, and see the gap you'd need to borrow — plus what loans cost later. 2026 figures built in; every number is editable.</p>
+  </div>
+  <button class="printbtn" onclick="window.print()">🖨 Print / Save PDF</button>
+</div></div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="guide">How to Use</button>
+  <button class="tab" data-tab="uni">4-Year College</button>
+  <button class="tab" data-tab="cc">Community College</button>
+  <button class="tab" data-tab="trade">Trade / Vocational</button>
+  <button class="tab" data-tab="compare">Compare</button>
+  <button class="tab" data-tab="income">Income &amp; Take-Home</button>
+  <button class="tab" data-tab="loan">Loan Repayment</button>
+  <button class="tab" data-tab="savings">Savings Goal</button>
+</div>
+
+<div class="wrap">
+
+  <!-- GUIDE -->
+  <div class="pane active" id="guide">
+    <div class="card guide">
+      <h2>Start here — how this tool works</h2>
+      <p class="sub">Hover the small <span class="tip" data-tip="Like this! Hover any ? for a plain-English explanation.">?</span> circles anywhere in the tool for a plain-English explanation of that field.</p>
+      <div class="steps">
+        <div class="step"><b>1. Pick a path</b><br>Open the <b>4-Year</b>, <b>Community College</b>, or <b>Trade</b> tab and fill in the yearly costs (defaults are already filled).</div>
+        <div class="step"><b>2. Add free money</b><br>Enter scholarships, grants (Pell), a job, family help, and savings. These shrink what you owe.</div>
+        <div class="step"><b>3. See your gap</b><br>The tool shows the gap you'd need to borrow and what that loan costs each month after school.</div>
+        <div class="step"><b>4. Explore</b><br>Use <b>Compare</b> to see paths side by side, <b>Income</b> for job take-home pay, and <b>Savings Goal</b> to start saving now.</div>
+      </div>
+
+      <h3>Where the "free money" comes from</h3>
+      <p>The single most important step is filing the <b>FAFSA</b> (Free Application for Federal Student Aid) at <a href="https://studentaid.gov" target="_blank" rel="noopener">studentaid.gov</a>. It's free and it unlocks Pell Grants, federal work-study, and the low-rate federal loans in this tool. It opens each October for the next school year — file as early as you can.</p>
+      <ul style="margin:6px 0 0;padding-left:20px">
+        <li><b>Grants &amp; scholarships</b> = free money you never repay. Chase these first.</li>
+        <li><b>Work-study / a job</b> = money you earn while enrolled.</li>
+        <li><b>Federal loans</b> = borrowed money at a fixed 6.52% (2026–27), capped at $31,000 total for a dependent undergrad.</li>
+        <li><b>Private / personal loans</b> = last resort; usually higher, credit-based rates.</li>
+      </ul>
+
+      <h3>Subsidized vs. unsubsidized loans</h3>
+      <p><b>Subsidized</b> federal loans don't build interest while you're in school — the government covers it. <b>Unsubsidized</b> loans <em>do</em> build interest the whole time, which gets added to what you owe. The Loan Repayment tab lets you see that difference.</p>
+
+      <h3>Scholarship starting points</h3>
+      <div class="linkgrid">
+        <a href="https://www.kapsifoundation.org" target="_blank" rel="noopener">Kappa Alpha Psi Foundation scholarships</a>
+        <a href="https://uncf.org/scholarships" target="_blank" rel="noopener">UNCF scholarships</a>
+        <a href="https://www.thegatesscholarship.org" target="_blank" rel="noopener">The Gates Scholarship</a>
+        <a href="https://bold.org" target="_blank" rel="noopener">Bold.org scholarships</a>
+        <a href="https://www.fastweb.com" target="_blank" rel="noopener">Fastweb scholarship search</a>
+        <a href="https://www.jkcf.org" target="_blank" rel="noopener">Jack Kent Cooke Foundation</a>
+      </div>
+      <p class="note">Also check your state's grant agency, your high school counselor, local churches and civic groups, and each college's own scholarship office — a lot of money goes unclaimed every year.</p>
+    </div>
+  </div>
+
+  <div class="pane" id="uni"></div>
+  <div class="pane" id="cc"></div>
+  <div class="pane" id="trade"></div>
+
+  <!-- COMPARE -->
+  <div class="pane" id="compare">
+    <div class="card">
+      <h2>Compare your options</h2>
+      <p class="sub">Pulls the numbers you entered on the three cost tabs and lines them up. The "2+2 Transfer" row estimates 2 years of community college, then 2 years at the 4-year school — often the lowest-debt path to a bachelor's degree.</p>
+      <table>
+        <thead><tr><th>Path</th><th>Total cost</th><th>Free money &amp; earnings</th><th>Gap to borrow</th><th>Est. monthly (10-yr)</th></tr></thead>
+        <tbody id="cmp_rows"></tbody>
+      </table>
+      <div class="note">Loan estimate uses a 10-year term at 6.52%. Edit any number on the cost tabs and this updates automatically.</div>
+    </div>
+  </div>
+
+  <!-- INCOME -->
+  <div class="pane" id="income">
+    <div class="card">
+      <h2>Income &amp; Take-Home Pay</h2>
+      <p class="sub">Pick your state to auto-fill the 2026 minimum wage and an estimated state tax rate. Change the wage to your actual pay. Taxes shown for a single filer with no dependents.</p>
+      <div class="grid">
+        <div class="field"><label>State</label><select id="inc_state"></select></div>
+        <div class="field"><label>Hourly wage <span class="tip" data-tip="Your pay per hour before taxes. Auto-filled with your state's 2026 minimum wage — change it to your real pay.">?</span></label><span class="pre">$</span><input id="inc_wage" class="padpre" type="number" step="0.25" value="7.25"></div>
+        <div class="field"><label>Hours per week <span class="tip" data-tip="How many hours you work weekly. Students often work 15–25 hours during the school year.">?</span></label><input id="inc_hours" type="number" step="1" value="20"></div>
+        <div class="field"><label>Weeks per year <span class="tip" data-tip="Weeks you work in a year. Use ~50 for year-round, or fewer if you only work summers.">?</span></label><input id="inc_weeks" type="number" step="1" value="50"></div>
+        <div class="field"><label>State income tax rate <span class="tip" data-tip="Approximate state tax for a lower-income single person. 0% means the state has no income tax. Editable.">?</span></label><span class="suf">%</span><input id="inc_staterate" type="number" step="0.1" value="0"></div>
+        <div class="field"><label>State minimum wage (2026)</label><span class="pre">$</span><input id="inc_minwage" class="padpre" type="number" step="0.01" value="7.25" readonly style="background:#f8f5ee"></div>
+      </div>
+      <div class="divider"></div>
+      <div class="summary" id="inc_summary"></div>
+      <div class="note">Federal tax uses the 2026 single standard deduction ($16,100) and the 10% / 12% brackets. FICA (Social Security + Medicare) is 7.65%. State tax is an approximate flat estimate for a lower-income single filer — real returns vary with deductions and local taxes. Not tax advice.</div>
+    </div>
+  </div>
+
+  <!-- LOAN -->
+  <div class="pane" id="loan">
+    <div class="card">
+      <h2>Loan Repayment Estimator</h2>
+      <p class="sub">What a loan actually costs after school. Federal undergraduate Direct Loan rate for 2026–27 is 6.52% — private/personal loans are often higher and depend on credit.</p>
+      <div class="grid">
+        <div class="field"><label>Amount borrowed <span class="tip" data-tip="Total you plan to borrow. You can paste the gap from any cost tab here.">?</span></label><span class="pre">$</span><input id="loan_amt" class="padpre" type="number" step="500" value="27000"></div>
+        <div class="field"><label>Interest rate (APR) <span class="tip" data-tip="Yearly interest rate. Federal undergrad = 6.52% for 2026–27. Private loans are often 8–14%+.">?</span></label><span class="suf">%</span><input id="loan_apr" type="number" step="0.1" value="6.52"></div>
+        <div class="field"><label>Repayment term <span class="tip" data-tip="How long you take to pay it off. Longer terms = lower monthly payment but much more total interest.">?</span></label>
+          <select id="loan_term"><option value="10">10 years (standard)</option><option value="15">15 years</option><option value="20">20 years</option><option value="25">25 years</option></select></div>
+      </div>
+      <div class="checkrow">
+        <input type="checkbox" id="loan_unsub">
+        <label for="loan_unsub">Unsubsidized loan — add interest that builds up while I'm in school <span class="tip" data-tip="Unsubsidized loans grow interest the whole time you're enrolled. That interest gets added to your balance when repayment starts.">?</span></label>
+      </div>
+      <div class="grid" id="loan_schoolwrap" style="margin-top:12px;display:none">
+        <div class="field"><label>Years in school before repayment</label><input id="loan_years" type="number" step="0.5" value="4"></div>
+      </div>
+      <div class="divider"></div>
+      <div class="summary" id="loan_summary"></div>
+      <div class="flag" id="loan_afford"></div>
+      <div class="note">Rule of thumb: keep total student-loan payments under about 8–10% of your gross monthly income. Federal loans for a dependent undergrad are capped at $31,000 total — anything above comes from Parent PLUS or private lenders (usually higher rates, credit-based).</div>
+    </div>
+  </div>
+
+  <!-- SAVINGS -->
+  <div class="pane" id="savings">
+    <div class="card">
+      <h2>Savings Goal — start now</h2>
+      <p class="sub">See how much to set aside each month between now and your first day of school to shrink the gap. Even small amounts add up.</p>
+      <div class="grid">
+        <div class="field"><label>Goal amount <span class="tip" data-tip="How much you want saved by the time school starts. Use the picker below to pull a gap from a cost tab.">?</span></label><span class="pre">$</span><input id="sav_goal" class="padpre" type="number" step="100" value="10000"></div>
+        <div class="field"><label>Pull goal from</label><select id="sav_src">
+          <option value="custom">Custom amount above</option>
+          <option value="uni">My 4-year gap</option>
+          <option value="cc">My community college gap</option>
+          <option value="trade">My trade/vocational gap</option>
+        </select></div>
+        <div class="field"><label>Months until school starts <span class="tip" data-tip="How many months from now until your first tuition bill. A 9th grader has ~48 months; a senior ~9.">?</span></label><input id="sav_months" type="number" step="1" value="24"></div>
+        <div class="field"><label>Already saved <span class="tip" data-tip="Money you've set aside so far, including any 529 college savings plan.">?</span></label><span class="pre">$</span><input id="sav_have" class="padpre" type="number" step="100" value="0"></div>
+        <div class="field"><label>Savings interest rate <span class="tip" data-tip="Yearly interest a savings account or 529 might earn. Leave near 0 for a basic account; 3–5% for high-yield.">?</span></label><span class="suf">%</span><input id="sav_apr" type="number" step="0.1" value="2"></div>
+      </div>
+      <div class="divider"></div>
+      <div class="summary" id="sav_summary"></div>
+      <div class="note">Assumes steady monthly deposits earning the rate shown. A real 529 plan may also offer state tax benefits — ask a professional.</div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <strong>Please read — this is an educational tool, not financial advice.</strong>
+    This planner is provided by Kappa League as a free estimating tool to help members and families think through the cost of school.
+    Kappa League, Kappa Alpha Psi Fraternity, Inc., and its mentors and volunteers are <strong>not certified financial planners, tax preparers, or licensed financial advisors</strong>, and nothing here is financial, tax, or legal advice.
+    Every number is an estimate based on publicly available information as of <strong>July 2026</strong> and can change at any time — minimum wages, loan interest rates, grant amounts, and tax rules are updated regularly.
+    Before making any decision about paying for school, taking on loans, or filing taxes, please talk with a licensed financial advisor or tax professional and your school's financial aid office, who can give you current, personalized guidance for your situation.
+    <div class="updated">Figures current as of July 2026 • Verify rates before relying on any result.</div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const money=n=>(n<0?"-$":"$")+Math.abs(Math.round(n)).toLocaleString();
+const money2=n=>(n<0?"-$":"$")+Math.abs(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const val=id=>parseFloat($(id).value)||0;
+const tip=t=>`<span class="tip" data-tip="${t}" title="${t}">?</span>`;
+
+// ---------- 2026 DATA ----------
+const MINWAGE={AL:7.25,AK:13.00,AZ:15.15,AR:11.00,CA:16.90,CO:15.16,CT:16.94,DE:15.00,DC:17.95,FL:14.00,GA:7.25,HI:16.00,ID:7.25,IL:15.00,IN:7.25,IA:7.25,KS:7.25,KY:7.25,LA:7.25,ME:15.10,MD:15.00,MA:15.00,MI:13.73,MN:11.41,MS:7.25,MO:15.00,MT:10.85,NE:15.00,NV:12.00,NH:7.25,NJ:15.92,NM:12.00,NY:16.00,NC:7.25,ND:7.25,OH:11.00,OK:7.25,OR:15.05,PA:7.25,RI:16.00,SC:7.25,SD:11.85,TN:7.25,TX:7.25,UT:7.25,VT:14.42,VA:12.77,WA:17.13,WV:8.75,WI:7.25,WY:7.25};
+const STATETAX={AL:4.0,AK:0,AZ:2.5,AR:3.0,CA:1.0,CO:4.4,CT:3.0,DE:3.5,DC:4.5,FL:0,GA:5.2,HI:4.0,ID:5.3,IL:4.95,IN:3.0,IA:3.8,KS:3.5,KY:3.5,LA:3.0,ME:4.0,MD:4.5,MA:5.0,MI:4.25,MN:3.0,MS:4.0,MO:2.5,MT:4.0,NE:3.0,NV:0,NH:0,NJ:1.5,NM:2.0,NY:4.0,NC:4.0,ND:0.5,OH:1.0,OK:3.0,OR:6.0,PA:3.07,RI:3.0,SC:3.0,SD:0,TN:0,TX:0,UT:4.5,VT:2.5,VA:4.0,WA:0,WV:3.0,WI:3.5,WY:0};
+const STATENAME={AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",DC:"Washington, D.C.",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming"};
+const FED={stdDed:16100,b10:12400,b12:50400,fica:0.0765,pell:7395,loanRate:6.52,aggDependent:31000};
+
+function amort(p,apr,months){const r=apr/100/12;return r===0?p/months:p*r/(1-Math.pow(1+r,-months));}
+function fedTax(gross){
+  const t=Math.max(0,gross-FED.stdDed);
+  if(t<=FED.b10) return t*0.10;
+  if(t<=FED.b12) return FED.b10*0.10+(t-FED.b10)*0.12;
+  return FED.b10*0.10+(FED.b12-FED.b10)*0.12+(t-FED.b12)*0.22;
+}
+
+// ---------- tabs ----------
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');$(t.dataset.tab).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+// ---------- cost tabs ----------
+const COST_CATS=[["tuition","Tuition & fees","The price for classes plus required school fees. This is the sticker price — many students pay less after aid."],
+  ["housing","Housing / room","Dorm or apartment cost for the year. Enter $0 if you live at home."],
+  ["food","Food / meal plan","Campus meal plan or your grocery budget for the year."],
+  ["books","Books & supplies","Textbooks, a laptop, and course materials — about $1,200/year on average."],
+  ["transport","Transportation","Gas, bus or train passes, and trips home during the year."],
+  ["personal","Personal / other","Phone, clothes, laundry, entertainment, and surprise costs."]];
+const FUND_CATS=[["scholar","Scholarships","Free money you win for merit, talent, background, or an essay. Never repaid."],
+  ["grant","Grants (incl. Pell)","Need-based free money, mostly government/state. Federal Pell max is $7,395 for 2026–27."],
+  ["work","Job / work-study","Money you earn from a part-time or work-study job during the year."],
+  ["family","Family help","What your family plans to chip in each year."]];
+const TABS={
+  uni:{years:4,title:"4-Year College — Cost of Attendance",sub:"Public in-state defaults from College Board 2025–26. Add years for a 5-year path; switch to out-of-state or private by raising tuition.",
+    cost:{tuition:11950,housing:8000,food:5500,books:1250,transport:1200,personal:2000},
+    fund:{scholar:0,grant:7395,work:3000,family:0},savings:0,
+    presetNote:"Out-of-state avg tuition & fees ≈ $31,880 · Private nonprofit ≈ $45,000."},
+  cc:{years:2,title:"Community College — Cost of Attendance",sub:"Public 2-year defaults; many students live at home, so housing/food start low. A common path is 2 years here, then transfer.",
+    cost:{tuition:4150,housing:0,food:3000,books:1250,transport:1800,personal:1500},
+    fund:{scholar:0,grant:7395,work:4000,family:0},savings:0,
+    presetNote:"Living at home dramatically cuts the gap — Pell can exceed tuition, leaving aid for other costs."},
+  trade:{years:1,title:"Trade / Vocational School — Cost",sub:"Certificate & trade programs (HVAC, welding, electrical, CDL, coding bootcamp, cosmetology). Set years to the program length (0.5 = six months).",
+    cost:{tuition:12000,housing:0,food:0,books:2000,transport:1500,personal:1000},
+    fund:{scholar:0,grant:3500,work:6000,family:0},savings:0,
+    presetNote:"Many trades earn while training (apprenticeships). Confirm the school is Title IV–eligible before counting Pell/federal loans."}
+};
+window.TAB_CALC={};
+
+function buildCostTab(id){
+  const c=TABS[id];
+  let h=`<div class="card"><h2>${c.title}</h2><p class="sub">${c.sub}</p>
+    <div class="grid">
+      <div class="field"><label>Years in program ${tip("How many years the program takes. Use 0.5 for a six-month program.")}</label><input id="${id}_years" type="number" step="0.5" value="${c.years}"></div>`;
+  COST_CATS.forEach(([k,l,t])=>{h+=`<div class="field"><label>${l} <span style="opacity:.6">/ yr</span> ${tip(t)}</label><span class="pre">$</span><input id="${id}_${k}" class="padpre" type="number" step="50" value="${c.cost[k]}"></div>`;});
+  h+=`</div>
+    <div class="field" style="margin-top:14px"><label>Yearly cost increase (inflation): <b id="${id}_infllbl">3%</b> ${tip("College costs usually rise 2–5% each year. This raises later years so your total is realistic.")}</label>
+      <input id="${id}_infl" type="range" min="0" max="6" step="0.5" value="3"></div>
+    <div class="divider"></div>
+    <h2>Free money &amp; earnings <span class="pill">per year</span></h2>
+    <p class="sub">Money you don't repay, plus job earnings. Chase grants and scholarships first.</p>
+    <div class="grid">`;
+  FUND_CATS.forEach(([k,l,t])=>{h+=`<div class="field"><label>${l} <span style="opacity:.6">/ yr</span> ${tip(t)}</label><span class="pre">$</span><input id="${id}_${k}" class="padpre" type="number" step="50" value="${c.fund[k]}"></div>`;});
+  h+=`<div class="field"><label>Savings / 529 <span style="opacity:.6">one-time</span> ${tip("Money already saved, including a 529 college savings plan. Applied once, not per year.")}</label><span class="pre">$</span><input id="${id}_savings" class="padpre" type="number" step="100" value="${c.savings}"></div>
+    </div>
+    <div class="note">${c.presetNote}</div>
+    </div>
+    <div class="card"><h2>The bottom line</h2><div class="summary" id="${id}_summary"></div>
+      <div id="${id}_gap"></div><div id="${id}_flag"></div>
+      <div class="note">Gap = total cost − (grants, scholarships, work & family help × years) − one-time savings. The gap is what you'd cover with loans. Loan estimate uses a 10-year term at 6.52%.</div>
+    </div>`;
+  $(id).innerHTML=h;
+  [...COST_CATS,...FUND_CATS].forEach(([k])=>$(`${id}_${k}`).addEventListener('input',()=>calcCost(id)));
+  ['years','savings','infl'].forEach(s=>$(`${id}_${s}`).addEventListener('input',()=>calcCost(id)));
+}
+
+function calcCost(id){
+  const years=val(`${id}_years`)||1;
+  const infl=val(`${id}_infl`)/100;
+  $(`${id}_infllbl`).textContent=val(`${id}_infl`)+"%";
+  let annualCost=0;COST_CATS.forEach(([k])=>annualCost+=val(`${id}_${k}`));
+  let annualFund=0;FUND_CATS.forEach(([k])=>annualFund+=val(`${id}_${k}`));
+  const savings=val(`${id}_savings`);
+  // total cost with inflation compounding each full year
+  let totalCost=0;for(let y=0;y<years;y++){const frac=Math.min(1,years-y);totalCost+=annualCost*Math.pow(1+infl,y)*frac;}
+  const totalFund=annualFund*years+savings;
+  const gap=totalCost-totalFund;
+  window.TAB_CALC[id]={annualCost,annualFund,years,gap,totalCost,totalFund};
+
+  $(`${id}_summary`).innerHTML=[
+    ["Cost / year (start)",money(annualCost)],["Total cost",money(totalCost)],
+    ["Free money & earnings / yr",money(annualFund)],["Total funding",money(totalFund)]
+  ].map(([k,v])=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+
+  const g=$(`${id}_gap`);
+  if(gap<=0){
+    g.innerHTML=`<div class="gapcard neg"><div class="lbl">Funding gap</div><div class="big">${money(0)} — fully covered</div>
+      <div class="exp">Your grants, scholarships, earnings and savings cover the full cost, with ${money(-gap)} to spare over ${years} year(s). No borrowing needed.</div></div>`;
+  }else{
+    const monthly=amort(gap,FED.loanRate,120);
+    g.innerHTML=`<div class="gapcard pos"><div class="lbl">Funding gap — what you'd need to borrow</div><div class="big">${money(gap)}</div>
+      <div class="exp">About ${money(gap/years)}/year. As a 10-year loan at 6.52% that's roughly <b>${money2(monthly)}/month</b> for 10 years after school (~${money(monthly*120-gap)} in interest).</div></div>`;
+  }
+  const f=$(`${id}_flag`);
+  f.innerHTML = gap>FED.aggDependent
+    ? `<div class="flag">Heads up: this gap is above the $31,000 federal cap for a dependent undergrad. About ${money(gap-FED.aggDependent)} would need Parent PLUS or private loans — usually higher, credit-based rates. Consider more scholarships or a community-college start.</div>`
+    : '';
+  if(window.calcCompare) calcCompare();
+  if(window.refreshSavingsSrc) refreshSavingsSrc();
+}
+
+// ---------- compare ----------
+function calcCompare(){
+  const T=window.TAB_CALC; if(!T.uni||!T.cc||!T.trade) return;
+  const row=(name,cost,fund,gap)=>{
+    const m=gap>0?money2(amort(gap,FED.loanRate,120)):"$0.00";
+    return `<tr><td>${name}</td><td>${money(cost)}</td><td>${money(fund)}</td><td class="pay">${money(Math.max(0,gap))}</td><td>${m}</td></tr>`;
+  };
+  // 2+2 transfer: 2 yrs CC + 2 yrs uni (annual figures)
+  const cc=T.cc, uni=T.uni;
+  const c2=2*cc.annualCost+2*uni.annualCost;
+  const f2=2*cc.annualFund+2*uni.annualFund;
+  const g2=c2-f2;
+  $('cmp_rows').innerHTML=
+    row("4-Year College",uni.totalCost,uni.totalFund,uni.gap)+
+    row("Community College",cc.totalCost,cc.totalFund,cc.gap)+
+    row("Trade / Vocational",T.trade.totalCost,T.trade.totalFund,T.trade.gap)+
+    row("2+2 Transfer (CC → 4-yr)",c2,f2,g2);
+}
+
+// ---------- income ----------
+function initIncome(){
+  const sel=$('inc_state');
+  Object.keys(STATENAME).sort((a,b)=>STATENAME[a].localeCompare(STATENAME[b]))
+    .forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=STATENAME[s];sel.appendChild(o);});
+  sel.value='GA';applyState();
+  sel.addEventListener('change',applyState);
+  ['inc_wage','inc_hours','inc_weeks','inc_staterate'].forEach(i=>$(i).addEventListener('input',calcIncome));
+}
+function applyState(){
+  const s=$('inc_state').value;
+  $('inc_minwage').value=MINWAGE[s].toFixed(2);
+  $('inc_wage').value=MINWAGE[s].toFixed(2);
+  $('inc_staterate').value=STATETAX[s];
+  calcIncome();
+}
+function calcIncome(){
+  const wage=val('inc_wage'),hrs=val('inc_hours'),wks=val('inc_weeks'),sr=val('inc_staterate')/100;
+  const gross=wage*hrs*wks;
+  const fed=fedTax(gross),fica=gross*FED.fica,state=gross*sr,net=gross-fed-fica-state;
+  const eff=gross>0?(fed+fica+state)/gross*100:0;
+  $('inc_summary').innerHTML=[
+    ["Gross / year",money(gross)],["Federal income tax",money(fed)],["FICA (7.65%)",money(fica)],
+    ["State income tax",money(state)],["Take-home / year",money(net)],["Take-home / month",money(net/12)],
+    ["Effective tax rate",eff.toFixed(1)+"%"]
+  ].map(([k,v],i)=>`<div class="stat"><div class="k">${k}</div><div class="v" style="${i===4?'color:var(--good)':''}">${v}</div></div>`).join('');
+}
+
+// ---------- loan ----------
+function calcLoan(){
+  $('loan_schoolwrap').style.display=$('loan_unsub').checked?'grid':'none';
+  let amt=val('loan_amt');const apr=val('loan_apr'),yrs=val('loan_term')||10,m=yrs*12;
+  let accrued=0;
+  if($('loan_unsub').checked){
+    const schoolYears=val('loan_years');
+    accrued=amt*(apr/100)*schoolYears; // simple interest during school, then capitalized
+    amt=amt+accrued;
+  }
+  const pay=amort(amt,apr,m),total=pay*m,interest=total-amt;
+  $('loan_summary').innerHTML=[
+    ["Monthly payment",money2(pay)],["Interest during school",money(accrued)],
+    ["Balance at repayment",money(amt)],["Total interest",money(interest+accrued)],["Total repaid",money(total)]
+  ].map(([k,v],i)=>`<div class="stat"><div class="k">${k}</div><div class="v" style="${i===0?'color:var(--maroon)':''}">${v}</div></div>`).join('');
+  const needIncome=pay*12/0.08;
+  $('loan_afford').innerHTML=`To keep this payment under 8% of income, aim to earn about <b>${money(needIncome)}/year</b> (${money(needIncome/12)}/month) after graduation.`+
+    (val('loan_amt')>FED.aggDependent?` This amount also exceeds the $31,000 federal dependent-undergrad cap, so part would be private/PLUS debt.`:``);
+}
+
+// ---------- savings ----------
+function refreshSavingsSrc(){
+  const src=$('sav_src').value;
+  if(src!=='custom' && window.TAB_CALC[src]){
+    $('sav_goal').value=Math.max(0,Math.round(window.TAB_CALC[src].gap));
+  }
+  calcSavings();
+}
+function calcSavings(){
+  const goal=val('sav_goal'),months=val('sav_months')||1,have=val('sav_have'),r=val('sav_apr')/100/12;
+  const fvHave=have*Math.pow(1+r,months);
+  const need=Math.max(0,goal-fvHave);
+  // monthly deposit for future value of annuity
+  const monthly=r===0?need/months:need*r/(Math.pow(1+r,months)-1);
+  const totalDeposited=monthly*months;
+  $('sav_summary').innerHTML=[
+    ["Save per month",money2(monthly)],["For",months+" months"],
+    ["Your deposits total",money(totalDeposited)],["Plus current savings grow to",money(fvHave)],
+    ["Goal",money(goal)]
+  ].map(([k,v],i)=>`<div class="stat"><div class="k">${k}</div><div class="v" style="${i===0?'color:var(--maroon)':''}">${v}</div></div>`).join('');
+}
+
+// ---------- init ----------
+['uni','cc','trade'].forEach(buildCostTab);
+['uni','cc','trade'].forEach(calcCost);
+window.calcCompare=calcCompare;window.refreshSavingsSrc=refreshSavingsSrc;
+calcCompare();
+initIncome();
+['loan_amt','loan_apr','loan_term','loan_unsub','loan_years'].forEach(i=>$(i).addEventListener('input',calcLoan));
+calcLoan();
+$('sav_src').addEventListener('change',refreshSavingsSrc);
+['sav_goal','sav_months','sav_have','sav_apr'].forEach(i=>$(i).addEventListener('input',calcSavings));
+calcSavings();
+</script>
+</body>
+</html>
